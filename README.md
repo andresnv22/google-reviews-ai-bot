@@ -1,6 +1,6 @@
 # Google Maps Reviews AI Bot
 
-Bot en Python (FastAPI) para negocios locales (clínicas, restaurantes, hoteles, talleres) que responde reseñas de Google Maps automáticamente con IA según la calificación y el comentario del cliente.
+Bot en Python (FastAPI) para negocios locales que **genera borradores** de respuesta a reseñas con OpenAI. No consulta reseñas ni publica respuestas en Google Business Profile; una persona debe revisar y publicar cada borrador. Requiere `OPENAI_API_KEY`.
 
 ## Instalación rápida
 ```bash
@@ -11,7 +11,7 @@ cp .env.example .env
 uvicorn app:app --reload --port 8002
 ```
 
-## Probar en modo demo
+## Probar el endpoint
 ```bash
 curl -X POST http://127.0.0.1:8002/reviews/reply \
   -H "Content-Type: application/json" \
