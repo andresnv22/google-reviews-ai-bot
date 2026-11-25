@@ -2,4 +2,8 @@ __pycache__/
 *.py[cod]
 .venv/
 .env
+*.db
+*.sqlite*
+token.json
 credentials.json
+.pytest_cache/
