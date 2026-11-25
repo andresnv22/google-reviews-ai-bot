@@ -1,47 +1,32 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from openai import OpenAI
 from pydantic import BaseModel, Field
 
 load_dotenv()
 
 app = FastAPI(
     title="Google Maps Reviews AI Bot",
-    description="Detecta reseñas de Google Business y genera respuestas personalizadas con IA.",
+    description="Genera respuestas personalizadas con IA para reseñas de Google Business Profile.",
     version="1.0.0",
 )
 
-DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
-
 
 class ReviewPayload(BaseModel):
-    business_name: str = "Clínica Dental Sonrisa"
+    business_name: str
     reviewer_name: str
     rating: int = Field(ge=1, le=5)
     comment: str
 
 
 def generate_review_reply(review: ReviewPayload) -> str:
-    """Genera una respuesta profesional y personalizada según las estrellas y comentario."""
-    if DEMO_MODE or not os.getenv("OPENAI_API_KEY"):
-        if review.rating >= 4:
-            return (
-                f"¡Muchas gracias, {review.reviewer_name}! Nos alegra muchísimo saber que tu "
-                f"experiencia en {review.business_name} fue positiva. ¡Te esperamos pronto!"
-            )
-        if review.rating == 3:
-            return (
-                f"Hola {review.reviewer_name}, gracias por tu comentario sobre {review.business_name}. "
-                "Tomamos muy en cuenta tus observaciones para seguir mejorando nuestro servicio."
-            )
-        return (
-            f"Hola {review.reviewer_name}, lamentamos mucho que tu experiencia en {review.business_name} "
-            "no haya sido la esperada. Escríbenos por interno para resolverlo de inmediato."
-        )
+    """Genera una respuesta profesional y personalizada usando OpenAI."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY no está configurada")
 
-    from openai import OpenAI
-
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    client = OpenAI(api_key=api_key)
     prompt = (
         f"Negocio: {review.business_name}\n"
         f"Cliente: {review.reviewer_name}\n"
@@ -54,23 +39,24 @@ def generate_review_reply(review: ReviewPayload) -> str:
         messages=[{"role": "user", "content": prompt}],
         temperature=0.4,
     )
-    return resp.choices[0].message.content or "Gracias por tu reseña."
+    content = resp.choices[0].message.content
+    if not content:
+        raise HTTPException(status_code=502, detail="Respuesta vacía de OpenAI")
+    return content
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "demo_mode": DEMO_MODE}
+    return {"status": "ok"}
 
 
 @app.post("/reviews/reply")
 def reply_to_review(review: ReviewPayload):
-    """Genera (y en producción publica) la respuesta a una reseña de Google Maps."""
+    """Genera la respuesta personalizada para una reseña de Google Maps."""
     reply_text = generate_review_reply(review)
     return {
         "business": review.business_name,
         "reviewer": review.reviewer_name,
         "rating": review.rating,
         "generated_reply": reply_text,
-        "published": not DEMO_MODE,
-        "demo_mode": DEMO_MODE,
     }
