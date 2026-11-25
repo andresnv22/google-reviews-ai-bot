@@ -1,6 +1,6 @@
 # Google Maps Reviews AI Bot
 
-Bot en Python (FastAPI) para negocios locales (clínicas, restaurantes, hoteles, talleres) que responde reseñas de Google Maps automáticamente con IA según la calificación y el comentario del cliente.
+Bot en Python (FastAPI) para negocios locales que **genera borradores** de respuesta a reseñas según la calificación y el comentario. No consulta reseñas ni publica respuestas en Google Business Profile. Revisa el borrador antes de publicarlo manualmente.
 
 ## Instalación rápida
 ```bash

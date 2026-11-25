@@ -7,7 +7,7 @@ load_dotenv()
 
 app = FastAPI(
     title="Google Maps Reviews AI Bot",
-    description="Detecta reseñas de Google Business y genera respuestas personalizadas con IA.",
+    description="Genera borradores de respuesta para reseñas; requiere revisión y publicación manual.",
     version="1.0.0",
 )
 
@@ -64,13 +64,13 @@ def health():
 
 @app.post("/reviews/reply")
 def reply_to_review(review: ReviewPayload):
-    """Genera (y en producción publica) la respuesta a una reseña de Google Maps."""
+    """Genera un borrador. Este servicio no publica respuestas en Google."""
     reply_text = generate_review_reply(review)
     return {
         "business": review.business_name,
         "reviewer": review.reviewer_name,
         "rating": review.rating,
         "generated_reply": reply_text,
-        "published": not DEMO_MODE,
+        "published": False,
         "demo_mode": DEMO_MODE,
     }
